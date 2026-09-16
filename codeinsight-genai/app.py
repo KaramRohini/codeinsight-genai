@@ -1,65 +1,120 @@
+import google.generativeai as genai
 import streamlit as st
-import time
 
-st.set_page_config(page_title="CodeInsight GenAI", page_icon="⚡", layout="wide")
+# Page Configuration
+st.set_page_config(
+    page_title="CodeInsight GenAI", page_icon="💡", layout="wide"
+)
 
-st.title("⚡ CodeInsight GenAI — App Test")
-st.caption("IBM Generative AI Internship Project")
-
-st.sidebar.header("🔑 Credentials")
-
-# Toggle between Demo Mode and Live API Key
-use_mock = st.sidebar.checkbox("Use Demo / Mock Mode (No API Key Required)", value=True)
-
-if not use_mock:
-    api_key = st.sidebar.text_input("Enter API Key", type="password")
-else:
-    st.sidebar.info("Demo Mode Active: Simulating AI responses.")
-    api_key = "DEMO_KEY"
+st.title("💡 CodeInsight GenAI")
+st.caption("IBM AI/ML Internship Capstone Project | Automated Code Reviewer")
 
 st.markdown("---")
 
-col1, col2 = st.columns(2)
+# Sidebar Configuration
+st.sidebar.header("⚙️ Configuration")
+
+# Retrieves key from Streamlit Secrets if available, otherwise expects user input
+default_key = st.secrets.get("GEMINI_API_KEY", "")
+api_key = st.sidebar.text_input(
+    "Enter Gemini API Key",
+    value=default_key,
+    type="password",
+    help="Get a free key from https://aistudio.google.com/",
+)
+
+task = st.sidebar.selectbox(
+    "Select Analysis Task",
+    [
+        "Find Bugs & Security Vulnerabilities",
+        "Explain Code",
+        "Refactor & Optimize Code",
+        "Generate Unit Tests",
+    ],
+)
+
+model_choice = st.sidebar.selectbox(
+    "Select Model", ["gemini-1.5-flash", "gemini-1.5-pro"]
+)
+
+# Main Interface Layout
+col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.subheader("Input Code")
-    user_code = st.text_area(
-        "Paste code snippet:",
-        height=250,
-        value="""def calculate_user_metrics(users):
-    avg_score = sum(user['score'] for user in users) / len(users)
-    SECRET_TOKEN = "sk-1234567890abcdef"
-    return avg_score"""
+    st.subheader("Input Code Snippet")
+    language = st.selectbox(
+        "Programming Language",
+        ["Python", "JavaScript", "Java", "C++", "SQL", "HTML/CSS"],
     )
+
+    default_code = """def calculate_user_metrics(users):
+    # Bug: Division by zero if users list is empty
+    avg_score = sum(user['score'] for user in users) / len(users)
     
-    task = st.selectbox("Task", ["Explain Code", "Find Bugs & Security Issues", "Refactor Code"])
-    submit = st.button("🚀 Run Analysis", type="primary", use_container_width=True)
+    # Bug: Hardcoded sensitive secret key
+    SECRET_TOKEN = "sk-1234567890abcdef"
+    
+    return avg_score"""
+
+    code_input = st.text_area(
+        "Paste code to analyze:", value=default_code, height=320
+    )
+
+    analyze_btn = st.button(
+        "🚀 Analyze Code", type="primary", use_container_width=True
+    )
 
 with col2:
-    st.subheader("Output")
-    if submit:
-        if not use_mock and not api_key.strip():
-            st.error("Please enter an API key or enable Demo Mode in the sidebar.")
-        elif not user_code.strip():
-            st.warning("Please paste some code first.")
+    st.subheader("GenAI Output & Recommendations")
+
+    if analyze_btn:
+        if not api_key.strip():
+            st.error(
+                "❌ Missing API Key! Please enter your Gemini API key in the sidebar."
+            )
+        elif not code_input.strip():
+            st.warning("⚠️ Please paste code into the text box before analyzing.")
         else:
-            with st.spinner("Analyzing code..."):
-                time.sleep(1.5)  # Simulates network request
-                
-                st.success("Analysis Complete!")
-                
-                if task == "Explain Code":
-                    st.markdown("### 📝 Code Explanation")
-                    st.write("This function takes a list of user dictionaries and calculates the average score across all users.")
-                elif task == "Find Bugs & Security Issues":
-                    st.markdown("### ⚠️ Bugs & Vulnerabilities")
-                    st.warning("**ZeroDivisionError**: `len(users)` will crash if the input list is empty.")
-                    st.error("**Security Risk**: Hardcoded `SECRET_TOKEN` found on line 4.")
-                elif task == "Refactor Code":
-                    st.markdown("### ⚡ Suggested Refactoring")
-                    st.code("""def calculate_user_metrics(users: list) -> float:
-    if not users:
-        return 0.0
-    return sum(user.get('score', 0) for user in users) / len(users)""", language="python")
+            with st.spinner("Analyzing code structure and security..."):
+                try:
+                    # Configure Gemini API
+                    genai.configure(api_key=api_key.strip())
+                    model = genai.GenerativeModel(model_choice)
+
+                    prompt = f"""
+                    You are an expert AI code reviewer and security analyzer.
+                    Perform the task: '{task}' on the following {language} code snippet.
+
+                    Structure your response with clear Markdown headings:
+                    - **Summary**: Brief overview of the analysis.
+                    - **Key Findings / Issues**: List bugs, performance bottlenecks, or security flaws.
+                    - **Improved / Corrected Code**: Provide updated code block.
+                    - **Best Practice Tips**: Concise suggestions for improvement.
+
+                    Code:
+                    ```{language.lower()}
+                    {code_input}
+                    ```
+                    """
+
+                    response = model.generate_content(prompt)
+
+                    st.success("✅ Analysis Complete!")
+                    st.markdown(response.text)
+
+                except Exception as e:
+                    st.error(f"🚨 API Request Failed: {str(e)}")
+                    st.info(
+                        "Tip: Double-check that your Gemini API key is active and correctly formatted."
+                    )
     else:
-        st.info("Click **Run Analysis** to test the response.")
+        st.info(
+            "Paste your code on the left and click **Analyze Code** to see real-time feedback."
+        )
+
+# Footer
+st.markdown("---")
+st.markdown(
+    "<p style='text-align: center; color: gray;'>CodeInsight GenAI • Built with Streamlit & Gemini API</p>",
+    unsafe_allow_html=True,
+)
