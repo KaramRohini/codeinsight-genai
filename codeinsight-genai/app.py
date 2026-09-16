@@ -2,9 +2,7 @@ import google.generativeai as genai
 import streamlit as st
 
 # Page Configuration
-st.set_page_config(
-    page_title="CodeInsight GenAI", page_icon="💡", layout="wide"
-)
+st.set_page_config(page_title="CodeInsight GenAI", page_icon="💡", layout="wide")
 
 st.title("💡 CodeInsight GenAI")
 st.caption("IBM AI/ML Internship Capstone Project | Automated Code Reviewer")
@@ -46,14 +44,12 @@ with col1:
         "Programming Language",
         ["Python", "JavaScript", "Java", "C++", "SQL", "HTML/CSS"],
     )
+
     code_input = st.text_area(
-    "Paste code to analyze:",
-    value="",
-    placeholder="Paste your code here...",
-    height=320,
-)
-    code_input = st.text_area(
-        "Paste code to analyze:", value=default_code, height=320
+        "Paste code to analyze:",
+        value="",
+        placeholder="Paste your code here...",
+        height=320,
     )
 
     analyze_btn = st.button(
