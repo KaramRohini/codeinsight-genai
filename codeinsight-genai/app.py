@@ -34,7 +34,7 @@ task = st.sidebar.selectbox(
 )
 
 model_choice = st.sidebar.selectbox(
-    "Select Model", ["gemini-1.5-flash", "gemini-1.5-pro"]
+    "Select Model", ["gemini-2.5-flash", "gemini-2.0-flash","gemini-1.5-flash"]
 )
 
 # Main Interface Layout
