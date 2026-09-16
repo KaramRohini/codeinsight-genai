@@ -47,6 +47,12 @@ with col1:
         ["Python", "JavaScript", "Java", "C++", "SQL", "HTML/CSS"],
     )
     code_input = st.text_area(
+    "Paste code to analyze:",
+    value="",
+    placeholder="Paste your code here...",
+    height=320,
+)
+    code_input = st.text_area(
         "Paste code to analyze:", value=default_code, height=320
     )
 
