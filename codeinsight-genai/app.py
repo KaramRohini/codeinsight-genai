@@ -46,16 +46,6 @@ with col1:
         "Programming Language",
         ["Python", "JavaScript", "Java", "C++", "SQL", "HTML/CSS"],
     )
-
-    default_code = """def calculate_user_metrics(users):
-    # Bug: Division by zero if users list is empty
-    avg_score = sum(user['score'] for user in users) / len(users)
-    
-    # Bug: Hardcoded sensitive secret key
-    SECRET_TOKEN = "sk-1234567890abcdef"
-    
-    return avg_score"""
-
     code_input = st.text_area(
         "Paste code to analyze:", value=default_code, height=320
     )
